@@ -32,3 +32,4 @@ server.get('/api/posts/:id', (req, res) => {
 });
 
 server.listen(5000, () => console.log('server running'));
+//this thing
