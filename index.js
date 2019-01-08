@@ -14,7 +14,7 @@ server.get('/api/posts', (req, res) =>{
     db.find().then(posts => {
         res.status(200).json(posts);
     }).catch(err => {
-        res.json(err);
+        res.status(500).json({ error: "The posts information could not be retrieved." });
     })
     
 });
@@ -27,26 +27,31 @@ server.get('/api/posts/:id', (req, res) => {
         if(posts){
             res.status(200).json(posts)
         }else{
-            res.status(404).json({message: 'post not found'})
+            res.status(404).json({ message: "The post with the specified ID does not exist." })
         }
         
     })
-    .catch(err => res.status(500).json(err))
+    .catch(err => res.status(500).json({ error: "The post information could not be retrieved." }))
 });
 
 server.post('/api/posts', (req, res) => {
     const postInfo = req.body;
-
     console.log('body:', req.body);
+    if((postInfo.title !== undefined)&& (postInfo.contents !== undefined)){
+        db.insert(postInfo).then(result => {
+                db.findById(result.id).then( post => {
+                    res.status(201).json(post);
+                })
+                .catch( err => res.status(500).json({ message: 'the get by id failed', error: err}) 
+            )
+            
+        }).catch(err => res.status(500).json({error: "There was an error while saving the post to the database"}))
+    }else{
+        res.status(400).json({errorMessage: "Please provide title and contents for the post."})
+    }
+    
 
-    db.insert(postInfo).then(result => {
-        db.findById(result.id).then( post => {
-            res.status(201).json(post);
-        })
-        .catch( err => res.status(500).json({ message: 'the get by id failed', error: err}) 
-    )
-    .catch(err => res.status(500).json({ message: 'the post failed', error: err }))
-})
+    
 })
 
 server.delete('/api/posts/:id', (req, res) => {
@@ -59,10 +64,35 @@ server.delete('/api/posts/:id', (req, res) => {
                     res.status(202).json(post);
                 });
         }else{
-            res.status(404).json({message: 'user with id does not exist.'});
+            res.status(404).json({ message: "The post with the specified ID does not exist." });
         }
     })
-    .catch(err => res.status(500).json(err))
+    .catch(err => res.status(500).json({ error: "The post could not be removed" }))
+})
+
+server.put('/api/posts/:id', async (req, res) => {
+    const {id}= req.params;
+    const changes = req.body;
+    
+        const post = await db.findById(id)
+        // console.log(post.length);
+        if(post.length > 0){
+            if((changes.title !== undefined)&& (changes.contents !== undefined)){
+                try{
+                    const result = await db.update(id, changes)
+                    res.status(200).json(result);
+
+                }catch(err) {
+                    res.status(500).json({ error: "The post information could not be modified." });
+                }
+            }else{
+                res.status(400).json({ errorMessage: "Please provide title and contents for the post." });
+            }
+        }else{
+            res.status(404).json({ message: "The post with the specified ID does not exist." });
+        }
+    
+    
 })
 
 
