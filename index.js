@@ -7,10 +7,12 @@ const db = require('./data/db.js');
 const server = express();
 
 server.use(express.json());
+const cors = require('cors')
+// server.use(cors());
 
 // add your server code starting here
 //get posts
-server.get('/api/posts', (req, res) =>{
+server.get('/api/posts',cors(), (req, res) =>{
     db.find().then(posts => {
         res.status(200).json(posts);
     }).catch(err => {

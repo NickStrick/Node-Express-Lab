@@ -11,15 +11,17 @@ class App extends Component {
   componentDidMount(){
     axios.get('http://localhost:5000/api/posts')
     .then(response => {
-      this.setState(() => ({posts: response}));
+      console.log(response)
+      this.setState(() => ({posts: response.data}));
     })
     .catch(err => console.log(err));
 
   }
 
-  render() {
+  render() { console.log(this.state.posts)
     return (
       <div className="App">
+      
         {this.state.posts.map(post => (
           <div>
             <h1>Card# {post.id}</h1>
